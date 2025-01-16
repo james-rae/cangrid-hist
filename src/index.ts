@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { GridCenters } from './grid';
 
 type CellNugget = {
     id: string;
@@ -139,10 +140,20 @@ async function sortAndWrite(validData: Array<YearNugget>) {
         cellHistory.sort(nuggetSort);
     });
 
-    const textMess: Array<string> = ['Year,Value,Cell_Id'];
+    const textMess: Array<string> = ['Year,Value,Cell_Id,Lat,Lon'];
     sorter.forEach((cellHistory, cellid) => {
+        // lookup cell lat-lon
+        const rowcol = cellid
+            .slice(1)
+            .split('C')
+            .map((n) => parseInt(n)); // drop the R, split on C, turn into numbers
+        const cellCenter = GridCenters[rowcol[1]][rowcol[0]];
+
         const textForCell = cellHistory
-            .map((histNugget) => `${histNugget.year},${histNugget.temp},${cellid}`)
+            .map(
+                (histNugget) =>
+                    `${histNugget.year},${histNugget.temp},${cellid},${cellCenter[1]},${cellCenter[0]}`,
+            )
             .join('\r\n');
         textMess.push(textForCell);
     });
